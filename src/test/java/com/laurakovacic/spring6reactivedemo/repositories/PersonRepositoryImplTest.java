@@ -86,11 +86,27 @@ class PersonRepositoryImplTest {
     }
 
     @Test
-    void getById() {
+    void getByIdHardCoded() {
         Mono<Person> lauraMono = personRepository.findAll().filter(person -> person.getFirstName().equals("Laura"))
                 .next();    // filtering flux, next returns a mono of a type
 
         lauraMono.subscribe(person -> System.out.println(person.getFirstName()));
+    }
+
+    @Test
+    void getByIdFound() {
+        final Integer id = 2;
+        Mono<Person> personMono = personRepository.getById(id);
+
+        assertTrue(personMono.hasElement().block());
+    }
+
+    @Test
+    void getByIdNotFound() {
+        final Integer id = 12;
+        Mono<Person> personMono = personRepository.getById(id);
+        
+        assertFalse(personMono.hasElement().block());
     }
 
     @Test
