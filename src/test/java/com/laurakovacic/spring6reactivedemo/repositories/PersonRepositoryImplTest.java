@@ -2,7 +2,10 @@ package com.laurakovacic.spring6reactivedemo.repositories;
 
 import com.laurakovacic.spring6reactivedemo.domain.Person;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -11,7 +14,7 @@ class PersonRepositoryImplTest {
     PersonRepository personRepository = new PersonRepositoryImpl();
 
     @Test
-    void monoByIdBlock() {
+    void monoGetByIdBlock() {
         Mono<Person> personMono = personRepository.getById(1);
 
         Person person = personMono.block();     // not preferred way bc of blocking
@@ -20,7 +23,7 @@ class PersonRepositoryImplTest {
     }
 
     @Test
-    void getByIdSubscriber() {
+    void monoGetByIdSubscriber() {
         Mono<Person> personMono = personRepository.getById(1);
 
         personMono.subscribe(person -> {        // == personMono.subscribe(System.out::println);
@@ -36,6 +39,42 @@ class PersonRepositoryImplTest {
             return person.getFirstName();
         }).subscribe(firstName -> {
             System.out.println(firstName);
+        });
+    }
+
+    @Test
+    void fluxBlockFirst() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        Person person = personFlux.blockFirst();    // blocks and waits for the first element to come across
+
+        System.out.println(person);
+    }
+
+    @Test
+    void fluxSubscriber() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        personFlux.subscribe(person -> {            // == personFlux.subscribe(System.out::println);
+            System.out.println(person);
+        });
+    }
+
+    @Test
+    void fluxMap() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        personFlux.map(Person::getFirstName).subscribe(firstName -> System.out.println(firstName)); // or (System.out::println)
+    }
+
+    @Test
+    void fluxToList() {
+        Flux<Person> personFlux = personRepository.findAll();
+
+        Mono<List<Person>> listMono = personFlux.collectList(); // converting flux to a mono, returns mono with list element
+
+        listMono.subscribe(list -> {
+            list.forEach(person -> System.out.println(person.getFirstName()));
         });
     }
 }
